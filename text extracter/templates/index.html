@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Web App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Upload an Image for OCR</h2>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <label for="file" class="file-label">Choose File</label>
+            <span id="file-name">No file chosen</span> <!-- Displays selected file name -->
+            <input type="file" name="file" id="file" class="file-input" required>
+            <button type="submit" class="btn">Upload</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('file').addEventListener('change', function() {
+            let fileName = this.files[0] ? this.files[0].name : "No file chosen";
+            document.getElementById('file-name').textContent = fileName;
+        });
+    </script>
+</body>
+</html>

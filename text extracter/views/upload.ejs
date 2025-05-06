@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Image for OCR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+    }
+
+    .spinner {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border: 5px solid rgba(0, 0, 0, 0.1);
+      border-top-color: #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      margin: -20px 0 0 -20px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .drag-over {
+      background-color: #e0f2fe !important;
+      border-color: #3b82f6 !important;
+    }
+
+    .btn-primary {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #2563eb;
+    }
+
+    .btn-secondary {
+      background-color: #e2e8f0;
+      color: #4b5563;
+    }
+
+    .btn-secondary:hover {
+      background-color: #cbd5e1;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 min-h-screen">
+  <header class="bg-white shadow-lg py-4 px-6 flex justify-between items-center sticky top-0 z-10">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold">
+      <img src="https://www.extracttextfromimage.com/web_assets/frontend/image/logo.svg" alt="logo" class="h-10">
+      <span class="text-gray-700">Text Recognition</span>
+    </a>
+    <div class="hidden sm:flex gap-6 items-center text-base font-medium">
+      <a href="/extract-text-from-pdf" class="text-blue-500 hover:text-blue-700">Extract Text From PDF</a>
+      <% if (userid) { %>
+        <span class="text-blue-700 font-semibold">👤 <%= userid %></span>
+      <% } else { %>
+        <a href="/login" class="btn-primary px-6 py-3 rounded-lg">Login</a>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="flex justify-center mt-10 px-4">
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8">
+      <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <div id="dropZone" class="border-2 border-dashed border-gray-300 bg-gray-100 rounded-xl p-10 text-center flex flex-col items-center mb-8">
+          <img src="https://www.extracttextfromimage.com/web_assets/frontend/image/tool-image.svg" class="mb-4 w-16 h-16" alt="upload">
+          <p class="text-gray-700 text-lg mb-4">Drop, Upload, Paste, or Use Camera</p>
+
+          <div class="flex gap-4 mb-4">
+            <label for="fileUpload" class="btn-secondary cursor-pointer flex items-center gap-2 py-2 px-4 rounded-lg">
+              <span>Browse File</span>
+              <span class="text-lg leading-none">+</span>
+            </label>
+            <button type="button" onclick="openCamera()" class="btn-secondary px-4 py-2 rounded-lg border cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 4a2 2 0 012-2h1l1-1h4l1 1h1a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+              </svg> Camera
+            </button>
+          </div>
+
+          <input id="fileUpload" type="file" name="inputFile" accept="image/*" class="hidden" required>
+          <input type="hidden" name="cameraImage" id="cameraImage">
+          <p id="fileName" class="text-sm text-gray-700 mt-2"></p>
+
+          <!-- Preview -->
+          <div id="previewContainer" class="mt-4 hidden">
+            <p class="text-sm text-gray-700 mb-2">Preview:</p>
+            <img id="imagePreview" src="#" alt="Preview" class="max-w-xs mx-auto rounded-xl shadow-lg">
+          </div>
+
+          <!-- Camera Stream -->
+          <div id="cameraContainer" class="mt-4 hidden flex-col items-center">
+            <video id="video" width="320" height="240" autoplay class="rounded-lg shadow"></video>
+            <button type="button" onclick="capturePhoto()" class="btn-primary mt-2 px-4 py-2 rounded">Capture</button>
+            <canvas id="canvas" width="320" height="240" class="hidden"></canvas>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn-primary px-8 py-3 text-lg rounded-lg">Extract</button>
+        </div>
+
+        <div class="spinner" id="spinner"></div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="bg-white py-6 text-center text-sm text-gray-600 mt-12">
+    <p>&copy; 2025 TextRecognitionFromImage.com | All rights reserved</p>
+  </footer>
+  <script>
+    const form = document.getElementById('uploadForm');
+    const spinner = document.getElementById('spinner');
+    const fileInput = document.getElementById('fileUpload');
+    const fileNameDisplay = document.getElementById('fileName');
+    const dropZone = document.getElementById('dropZone');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const cameraImageInput = document.getElementById('cameraImage');
+    const cameraContainer = document.getElementById('cameraContainer');
+    
+    let stream; // To store the video stream
+    
+    form.addEventListener('submit', () => {
+      spinner.style.display = 'block';
+    });
+    
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fileNameDisplay.textContent = `Selected file: ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imagePreview.src = e.target.result;
+          previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        fileNameDisplay.textContent = '';
+        previewContainer.classList.add('hidden');
+      }
+    });
+    
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+    
+    document.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || window.clipboardData).items;
+      for (const item of items) {
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(file);
+          fileInput.files = dataTransfer.files;
+          fileInput.dispatchEvent(new Event('change'));
+        }
+      }
+    });
+    
+    function openCamera() {
+      cameraContainer.classList.remove('hidden');
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          video.srcObject = stream;
+          this.stream = stream; // Save the stream to stop it later
+        })
+        .catch((err) => {
+          alert('Error accessing camera: ' + err);
+        });
+    }
+    
+    function dataURLtoFile(dataurl, filename) {
+      const arr = dataurl.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) u8arr[n] = bstr.charCodeAt(n);
+      return new File([u8arr], filename, { type: mime });
+    }
+    
+    function capturePhoto() {
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/png');
+      imagePreview.src = dataURL;
+      previewContainer.classList.remove('hidden');
+      cameraImageInput.value = dataURL;
+  
+      // Stop the camera stream after capture and hide video element
+      stopCamera();
+  
+      const file = dataURLtoFile(dataURL, 'captured.png');
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  
+    // Function to stop the camera stream and hide video element
+    function stopCamera() {
+      if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop()); // Stop each track of the stream
+        stream = null; // Clear the stream variable
+      }
+      // Hide the video element and the camera container
+      video.classList.add('hidden');
+      cameraContainer.classList.add('hidden');
+    }
+  </script>
+  
+</body>
+
+</html>

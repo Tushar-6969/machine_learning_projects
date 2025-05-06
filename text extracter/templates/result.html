@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>OCR Results</h2>
+        <div class="result-box">
+            <h3>Tesseract OCR:</h3>
+            <p>{{ tesseract_text }}</p>
+        </div>
+        <div class="result-box">
+            <h3>EasyOCR:</h3>
+            <p>{{ easyocr_text }}</p>
+        </div>
+        <br>
+        <a href="/" class="btn">Upload Another Image</a>
+    </div>
+</body>
+</html>
