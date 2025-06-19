@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fake News Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 30px;
+            text-align: center;
+        }
+        textarea {
+            width: 90%;
+            height: 200px;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            margin-top: 20px;
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>📰 BERT Fake News Classifier</h1>
+    <form method="POST" action="/predict">
+        <textarea name="news" placeholder="Paste news text here..." required></textarea><br>
+        <button type="submit">Check</button>
+    </form>
+</body>
+</html>

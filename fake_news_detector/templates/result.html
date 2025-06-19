@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            padding: 30px;
+            text-align: center;
+        }
+        .result-box {
+            display: inline-block;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .label {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #333;
+        }
+        .fake {
+            color: red;
+        }
+        .real {
+            color: green;
+        }
+        .confidence {
+            font-size: 16px;
+            color: #666;
+        }
+        .back {
+            margin-top: 20px;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-box">
+        <div class="label {{ 'fake' if label == 'Fake' else 'real' }}">
+            🧠 Prediction: {{ label }} News
+        </div>
+        <div class="confidence">Confidence: {{ confidence }}</div>
+        <div class="back"><a href="/">🔙 Try Another</a></div>
+    </div>
+</body>
+</html>
