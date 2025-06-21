@@ -28,7 +28,7 @@ This repo contains end-to-end projects demonstrating my applied machine learning
   - Image upload and OCR processing
   - Tesseract + EasyOCR for multilingual support
   - Express.js-based server and UI
-- **Location:** [`/text extracter`](./text extracter)
+- **Location:** [`/text extracter`]
 
 ---
 
